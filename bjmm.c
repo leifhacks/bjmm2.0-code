@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     double kmin, kmax, ksteps;
     double McElieceD, McElieceR;
     double k=0, w=0;
-    double MAXvalues[24];
+    double Tmax=0.0, Tmin=1.0, MAXvalues[24], MINvalues[24];
     
     // FDD, BJMM-NN, m=5
     //depth=5;
@@ -74,23 +74,23 @@ int main(int argc, char *argv[]) {
 //    McElieceD=0.02, McElieceR=0.775;
     
     // McE, BJMM-NN, m=4
-    depth=4;
-    McEflag=1;
-    pmin=0.0050, pmax=0.0150, psteps=0.0001;
-    lmin=0.0580, lmax=0.0680, lsteps=0.0001;
-    emin[1]=0.0007, emax[1]=0.0047, esteps[1]=0.0001;
-    emin[2]=0.0000, emax[2]=0.0010, esteps[2]=0.0001;
-    emin[3]=0.0000, emax[3]=0.0010, esteps[3]=0.0001;
-    McElieceD=0.02, McElieceR=0.775;
+//    depth=4;
+//    McEflag=1;
+//    pmin=0.0050, pmax=0.0150, psteps=0.0001;
+//    lmin=0.0580, lmax=0.0680, lsteps=0.0001;
+//    emin[1]=0.0007, emax[1]=0.0047, esteps[1]=0.0001;
+//    emin[2]=0.0000, emax[2]=0.0010, esteps[2]=0.0001;
+//    emin[3]=0.0000, emax[3]=0.0010, esteps[3]=0.0001;
+//    McElieceD=0.02, McElieceR=0.775;
     
     // FDD, BJMM-NN, m=3
-    //depth=3;
-    //NNflag = 1;
-    //kmin=0.422, kmax=0.422, ksteps=0.001;
-    //pmin=0.0600, pmax=0.0700, psteps=0.0001;
-    //lmin=0.1800, lmax=0.2000, lsteps=0.0001;
-    //emin[1]=0.0180, emax[1]=0.0220, esteps[1]=0.0001;
-    //emin[2]=0.0030, emax[2]=0.0050, esteps[2]=0.0001;
+    depth=3;
+    NNflag = 1;
+    kmin=0.420, kmax=0.424, ksteps=0.001;
+    pmin=0.0600, pmax=0.0700, psteps=0.0001;
+    lmin=0.1800, lmax=0.2000, lsteps=0.0001;
+    emin[1]=0.0180, emax[1]=0.0220, esteps[1]=0.0001;
+    emin[2]=0.0030, emax[2]=0.0050, esteps[2]=0.0001;
     
     // HDD, BJMM-NN, m=3
     //depth=3;
@@ -168,7 +168,11 @@ int main(int argc, char *argv[]) {
     // Optimization for every k
     for (k=kmin; k<=kmax; k = k + ksteps) {
         printf("k = %.4f \n======== \n", k);
-        Optimize(k,w,depth,pmin,pmax,psteps,lmin,lmax,lsteps,emin,emax,esteps,NNflag,HDflag,H1,scale,MAXvalues);
+        Optimize(k,w,depth,pmin,pmax,psteps,lmin,lmax,lsteps,emin,emax,esteps,NNflag,HDflag,H1,scale,MINvalues,&Tmin);
+        if (Tmax < Tmin) {
+            Tmax=Tmin;
+            for (int i=0; i<24; i++) MAXvalues[i]=MINvalues[i];
+        }
     }
     
     // Output
