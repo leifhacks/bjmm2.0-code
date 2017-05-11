@@ -1,10 +1,17 @@
+#define scale 1000000
+
 double H(double x) {
+	//if (x<0.0 && x > -0.000001) x = 0.0;
+    if (x<0.0 || x>1.0) {
+        printf("-H Error %f -", x);
+        return 0.0;
+    }
     if (x==0.0) return 0;
-    if (x==1) return 0;
+    if (x==1.0) return 0;
     return (-x*log(x)-(1-x)*log(1-x))/log(2);
 }
 
-double inverse(double H1[], int scale, double y) {
+double inverse(double H1[], double y) {
     int left=0, right=scale, mid;
     while(left < right-1) {
         mid= (left+right)/2;
@@ -18,16 +25,23 @@ double inverse(double H1[], int scale, double y) {
     else return (right/(2*(double)scale));
 }
 
-double NN(double gamma, double lambda, double H1[], int scale) {
-    if (lambda < 1-H(gamma/2) ) 
-	   return (1-gamma) * (1 - H( (inverse(H1, scale, (1-lambda) ) - gamma/2 ) / (1 - gamma) ) );
-    else return 2;
+double NN(double gamma, double lambda, double H1[]) {
+    if (gamma<0.0 || gamma>=1.0 || lambda<0.0) {
+        printf("-NN Error %f %f -", gamma, lambda);
+        return 2*lambda;
+    }
+    if (gamma==0.0) {
+        return lambda;
+    }
+    if (gamma < 0.5 && lambda < 1-H(gamma/2) ) 
+	   return (1-gamma) * (1 - H( (inverse(H1, (1-lambda) ) - gamma/2 ) / (1 - gamma) ) );
+    else return fmin(2*lambda, lambda+H(gamma));
 }
 
-double Optimize(double k, double w, int depth, double pmin, double pmax, double psteps, double lmin, double lmax, double lsteps, double emin[5], double emax[5], double esteps[5], int NNflag, int HDflag, double H1[], int scale, double MINvalues[24], double *T) {
-    
+double Optimize(double k, double w, int depth, double pmin, double pmax, double psteps, double lmin, double lmax, double lsteps, double emin[5], double emax[5], double esteps[5], int NNflag, int HDflag, double H1[], double MINvalues[24], double *T) {
+     
     if (w==0) {
-        w = inverse(H1, scale, 1-k);
+        w = inverse(H1, 1-k);
         if (HDflag) w=w/2;
     }
     int dmin=2, dmax=5, dsteps=1;
@@ -36,11 +50,11 @@ double Optimize(double k, double w, int depth, double pmin, double pmax, double 
         dmax=depth;
     }
     double S[6], C[6];
-    double maximum;
+    double maximum, Smax;
     double l,invprob;
-    double p[6], eps[5], r[6], epsswap;
+    double p[6], eps[6], r[6], epsswap;
     *T = 1.0;
-
+ 
     for (int d=dmin; d<=dmax; d+=dsteps) {
         for (p[0]=pmin; p[0]<pmax; p[0] = p[0] + psteps) {
             for (l=lmin; l<lmax; l = l + lsteps) {
@@ -58,7 +72,7 @@ double Optimize(double k, double w, int depth, double pmin, double pmax, double 
                                     r[i] = p[i-1] + H(eps[i]/(k+l-p[i-1])) * (k+l-p[i-1]);
                                     S[i] = H(p[i]/(k+l)) * (k+l) - r[i];
                                     if ((i>1) || (NNflag==0)) C[i] = 2*S[i] + r[i] - r[i-1];
-                                    else                      C[i] = NN((w-p[i-1])/(1-k-l), S[i]/(1-k-l), H1, scale) * (1-k-l);
+                                    else                      C[i] = NN((w-p[i-1])/(1-k-l), S[i]/(1-k-l), H1) * (1-k-l);
                                     //printf("r[%d] = %f, S[%d] = %f, C[%d] = %f \n", i, r[i], i, S[i], i, C[i]);
                                 }
                                 if (l >= r[1]) {
@@ -66,18 +80,21 @@ double Optimize(double k, double w, int depth, double pmin, double pmax, double 
                                     C[d] = 2*S[d] + r[d] - r[d-1];
                                     //printf("S[%d] = %f, C[%d] = %f \n", d, S[d], d, C[d]);
                                     maximum = 0.0;
-                                    for (int i=1; i<=d; i++) {maximum = fmax(fmax(maximum, S[i]),C[i]);}
+                                    Smax = 0.0;
+                                    for (int i=1; i<=d; i++) {Smax = fmax(Smax, S[i]);}
+                                    for (int i=1; i<=d; i++) {maximum = fmax(maximum, C[i]);}
+                                    maximum = fmax(maximum,Smax);
                                     if (*T > (maximum + invprob)) {
                                         *T = maximum + invprob;
                                         printf("depth=%d k=%.3f w=%f p=%.4f l=%.4f ", d, k, w, p[0], l);
                                         for(int i=1; i<d; i++) printf("eps[%d]=%.4f ", i, eps[i]);
                                         printf("T=%.5f \n", *T);
-                                        MINvalues[0]=k; MINvalues[1]=w; MINvalues[2]=l;
-                                        for(int i=1; i<d; i++) MINvalues[i+2]=r[i];
-                                        for(int i=0; i<=d; i++) MINvalues[d+2+i]=p[i];
-                                        for(int i=1; i<=d; i++) MINvalues[2*d+3+i]=S[i];
-                                        for(int i=1; i<=d; i++) MINvalues[3*d+2+i]=C[i];
-                                        MINvalues[4*d+3]= *T;
+                                        MINvalues[0]=k; MINvalues[1]=w; MINvalues[2]=l; // for d=3
+                                        for(int i=1; i<d; i++) MINvalues[i+2]=r[i]; // 3,4
+                                        for(int i=0; i<=d; i++) MINvalues[d+2+i]=p[i]; // 5,6,7,8
+                                        for(int i=1; i<=d; i++) MINvalues[2*d+2+i]=S[i]; // 9,10,11
+                                        for(int i=1; i<=d; i++) MINvalues[3*d+2+i]=C[i]; // 12,13,14
+                                        MINvalues[4*d+3]= *T;                             // 15
                                     }
                                 }
                                 eps[d] = epsswap;
@@ -88,7 +105,7 @@ double Optimize(double k, double w, int depth, double pmin, double pmax, double 
             }
         }
     }
-
+ 
     return 0.0;
-
+ 
 }

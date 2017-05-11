@@ -1,16 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "tools.h"
 #include <time.h>
+#include "tools.h"
 
 int main(int argc, char *argv[]) {
     // running time counter
     clock_t tStart = clock();
     
     // Compute LUT for H
-    int scale=1000000;
-    double H1[scale+1];
+    static double H1[scale+1];
     for (int i=0; i<=scale; i++) {
         H1[i]=H(i/(2*(double)scale));
         //printf("%d %f %.20f \n",i, i/(2*(double)scale), H1[i]);
@@ -31,15 +30,15 @@ int main(int argc, char *argv[]) {
     double Tmax=0.0, Tmin=1.0, MAXvalues[24], MINvalues[24];
     
     // FDD, BJMM-NN, m=5
-    //depth=5;
-    //NNflag = 1;
-    //kmin=0.419, kmax=0.421, ksteps=0.001;
-    //pmin=0.0810, pmax=0.0830, psteps=0.0001;
-    //lmin=0.2622, lmax=0.2642, lsteps=0.0001;
-    //emin[1]=0.0312, emax[1]=0.0332, esteps[1]=0.0001;
-    //emin[2]=0.0146, emax[2]=0.0166, esteps[2]=0.0001;
-    //emin[3]=0.0030, emax[3]=0.0050, esteps[3]=0.0001;
-    //emin[4]=0.0000, emax[4]=0.0010, esteps[4]=0.0001;
+/*     depth=5;
+    NNflag = 1;
+    kmin=0.419, kmax=0.421, ksteps=0.001;
+    pmin=0.0810, pmax=0.0830, psteps=0.0001;
+    lmin=0.2622, lmax=0.2642, lsteps=0.0001;
+    emin[1]=0.0312, emax[1]=0.0332, esteps[1]=0.0001;
+    emin[2]=0.0146, emax[2]=0.0166, esteps[2]=0.0001;
+    emin[3]=0.0030, emax[3]=0.0050, esteps[3]=0.0001;
+    emin[4]=0.0000, emax[4]=0.0010, esteps[4]=0.0001; */
     
     // FDD, BJMM-NN, m=4
     //depth=4;
@@ -93,24 +92,24 @@ int main(int argc, char *argv[]) {
     emin[2]=0.0030, emax[2]=0.0050, esteps[2]=0.0001;
     
     // HDD, BJMM-NN, m=3
-    //depth=3;
-    //NNflag = 1;
-    //HDflag=1;
-    //kmin=0.473, kmax=0.475, ksteps=0.001;
-    //pmin=0.0150, pmax=0.0200, psteps=0.0001;
-    //lmin=0.0640, lmax=0.0690, lsteps=0.0001;
-    //emin[1]=0.0030, emax[1]=0.0090, esteps[1]=0.0001;
-    //emin[2]=0.0000, emax[2]=0.0050, esteps[2]=0.0001;
+/*     depth=3;
+    NNflag = 1;
+    HDflag=1;
+    kmin=0.473, kmax=0.475, ksteps=0.001;
+    pmin=0.0150, pmax=0.0200, psteps=0.0001;
+    lmin=0.0640, lmax=0.0690, lsteps=0.0001;
+    emin[1]=0.0030, emax[1]=0.0090, esteps[1]=0.0001;
+    emin[2]=0.0000, emax[2]=0.0050, esteps[2]=0.0001; */
     
     // McE, BJMM-NN, m=3
-//    depth=3;
-//    NNflag = 1;
-//    McEflag=1;
-//    pmin=0.0050, pmax=0.0150, psteps=0.0001;
-//    lmin=0.0370, lmax=0.0480, lsteps=0.0001;
-//    emin[1]=0.0010, emax[1]=0.0050, esteps[1]=0.0001;
-//    emin[2]=0.0000, emax[2]=0.0020, esteps[2]=0.0001;
-//    McElieceD=0.02, McElieceR=0.775;
+/*     depth=3;
+    NNflag = 1;
+    McEflag=1;
+    pmin=0.0050, pmax=0.0150, psteps=0.0001;
+    lmin=0.0370, lmax=0.0480, lsteps=0.0001;
+    emin[1]=0.0010, emax[1]=0.0050, esteps[1]=0.0001;
+    emin[2]=0.0000, emax[2]=0.0020, esteps[2]=0.0001;
+    McElieceD=0.02, McElieceR=0.775; */
     
     // McE, BJMM, m=3
 //    depth=3;
@@ -140,13 +139,13 @@ int main(int argc, char *argv[]) {
     //emin[1]=0.0000, emax[1]=0.0050, esteps[1]=0.0001;
     
     // McE, BJMM-NN, m=2
-//    depth=2;
-//    NNflag = 1;
-//    McEflag=1;
-//    pmin=0.0030, pmax=0.0130, psteps=0.0001;
-//    lmin=0.0100, lmax=0.0300, lsteps=0.0001;
-//    emin[1]=0.0000, emax[1]=0.0040, esteps[1]=0.0001;
-//    McElieceD=0.02, McElieceR=0.775;
+/*     depth=2;
+    NNflag = 1;
+    McEflag=1;
+    pmin=0.0030, pmax=0.0130, psteps=0.0001;
+    lmin=0.0100, lmax=0.0300, lsteps=0.0001;
+    emin[1]=0.0000, emax[1]=0.0040, esteps[1]=0.0001;
+    McElieceD=0.02, McElieceR=0.775; */
     
     // McE, BJMM, m=2
 //    depth=2;
@@ -168,7 +167,7 @@ int main(int argc, char *argv[]) {
     // Optimization for every k
     for (k=kmin; k<=kmax; k = k + ksteps) {
         printf("k = %.4f \n======== \n", k);
-        Optimize(k,w,depth,pmin,pmax,psteps,lmin,lmax,lsteps,emin,emax,esteps,NNflag,HDflag,H1,scale,MINvalues,&Tmin);
+        Optimize(k,w,depth,pmin,pmax,psteps,lmin,lmax,lsteps,emin,emax,esteps,NNflag,HDflag,H1,MINvalues,&Tmin);
         if (Tmax < Tmin) {
             Tmax=Tmin;
             for (int i=0; i<24; i++) MAXvalues[i]=MINvalues[i];
@@ -182,7 +181,7 @@ int main(int argc, char *argv[]) {
     printf(" k=%.3f w=%f l=%.4f ", MAXvalues[0], MAXvalues[1], MAXvalues[2]);
     for(int i=1; i<depth; i++) printf("R[%d]=%.4f ", i, MAXvalues[i+2]);
     for(int i=0; i<=depth; i++) printf("p[%d]=%.4f ", i, MAXvalues[depth+2+i]);
-    for(int i=1; i<=depth; i++) printf("S[%d]=%.4f ", i, MAXvalues[2*depth+3+i]);
+    for(int i=1; i<=depth; i++) printf("S[%d]=%.4f ", i, MAXvalues[2*depth+2+i]);
     for(int i=1; i<=depth; i++) printf("C[%d]=%.4f ", i, MAXvalues[3*depth+2+i]);
     printf("T=%.5f \n", MAXvalues[4*depth+3]);
     
